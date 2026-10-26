@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NebulaSound">
+<meta name="theme-color" content="#000000">
+<title>NebulaSound</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tinos:wght@700&family=Arimo:wght@400;700&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+/* ===== Variables de color (las cambia el panel de Ajustes) ===== */
+:root{
+  --neon:#3dff3d;
+  --list:#e8f0e8;
+  --bg:#000000;
+  --m-hi:#6a706a; --m-mid:#2a2e2a; --m-lo:#0e100e; --m-edge:#9aa29a;
+  --beat:.5s;
+  --n-deep:color-mix(in srgb,var(--neon) 15%,#000);
+  --n-dark:color-mix(in srgb,var(--neon) 30%,#000);
+  --n-mid:color-mix(in srgb,var(--neon) 55%,#000);
+  --n-light:color-mix(in srgb,var(--neon) 45%,#fff);
+  --n-pale:color-mix(in srgb,var(--neon) 20%,#fff);
+  --n-glow:color-mix(in srgb,var(--neon) 60%,transparent);
+}
+*{-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;overscroll-behavior:none}
+body{-webkit-font-smoothing:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#stage{position:fixed;inset:0;display:flex;justify-content:center;align-items:flex-start;padding-top:env(safe-area-inset-top);background:var(--bg)}
+#app{position:relative;width:300px;height:649px;flex:none;--beat2:calc(var(--beat) * 2);--beatH:calc(var(--beat) / 2)}
+.ab{position:absolute!important}
+button.tube{-webkit-appearance:none;appearance:none;padding:0;margin:0;cursor:pointer}
+button{font:inherit}
+.metal{background:radial-gradient(ellipse at 50% 20%,var(--m-hi),var(--m-mid) 45%,var(--m-lo) 80%);border:1px solid #000;box-shadow:inset 0 1px 0 var(--m-edge),inset 0 -2px 3px #000}
+.chrome{background:linear-gradient(#f0f4f0,#8c958c 40%,#2e332e 55%,#a6b0a6 80%,#e4ece4);border:1px solid #000}
+.tube{background:repeating-linear-gradient(90deg,var(--n-dark) 0 2px,var(--neon) 2px 4px,var(--n-light) 4px 5px,var(--n-mid) 5px 7px);border:1px solid #000;box-shadow:0 0 6px var(--n-glow)}
+.tubev{background:repeating-linear-gradient(0deg,var(--n-dark) 0 2px,var(--neon) 2px 4px,var(--n-light) 4px 5px,var(--n-mid) 5px 7px);border:1px solid #000;box-shadow:0 0 6px var(--n-glow)}
+.gb{all:unset;box-sizing:border-box;cursor:pointer;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 40% 30%,var(--n-pale),var(--neon) 30%,var(--n-mid) 70%,var(--n-deep));border:1px solid #000;box-shadow:0 0 0 2px var(--m-mid),0 0 0 3px #000,0 0 8px var(--n-glow);color:var(--n-deep);font-family:'Arimo',sans-serif;font-weight:700;font-size:8px}
+.gb:active{background:radial-gradient(circle at 50% 60%,var(--n-light),var(--n-mid) 50%,var(--n-deep))}
+.gb.mini{box-shadow:0 0 0 1px #000,0 0 5px var(--n-glow)}
+.cbtn{all:unset;box-sizing:border-box;cursor:pointer;display:grid;place-items:center;border-radius:7px;height:13px;font-family:'Arimo',sans-serif;font-weight:700;font-size:7px;color:#0c1a0c;text-shadow:0 1px 0 rgba(255,255,255,.6);background:linear-gradient(#fbfdfb,#cfd6cf 45%,#a3aca3 55%,#e2e9e2);border:1px solid #000;box-shadow:inset 0 -1px 0 #6a726a}
+.cbtn:active{filter:brightness(.75)}
+.lab{font-family:'Arimo',sans-serif;font-weight:700;font-size:6px;letter-spacing:1px;color:#7a847a}
+.px{font-family:'Silkscreen',monospace;font-size:5px;line-height:5px;color:var(--neon)}
+/* lluvia de código */
+@keyframes rain{from{transform:translateY(-50%)}to{transform:translateY(0)}}
+#rain > div{font-family:'Arimo',sans-serif;font-size:8px;line-height:8px;color:var(--neon);white-space:pre;text-align:center}
+.run #rain > div{animation:rain 5s steps(60) infinite}
+.run #rain > div:nth-child(2n){animation-duration:3.6s}
+.run #rain > div:nth-child(3n){animation-duration:7s}
+/* texto que corre */
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+#ticker{display:inline-block;white-space:nowrap}
+.run #ticker{animation:tick 9s steps(150) infinite}
+/* ecualizador */
+@keyframes bob{0%{transform:scaleY(.15)}100%{transform:scaleY(1)}}
+#eq > div{transform-origin:bottom;transform:scaleY(.06);flex:1;background:repeating-linear-gradient(to top,var(--neon) 0 3px,#000 3px 4px);box-shadow:0 0 3px var(--neon)}
+.run #eq > div{animation:bob .45s steps(6) infinite alternate}
+.run #eq > div:nth-child(2n){animation-duration:.32s}
+.run #eq > div:nth-child(3n){animation-duration:.6s;animation-delay:-.2s}
+/* robots (a saltos, estilo pixel) */
+.bot g{transform-box:fill-box}
+.al,.ar{transform-origin:50% 0}
+.hd{transform-origin:50% 100%}
+.bot .n{fill:var(--neon)} .bot .l{fill:var(--n-light)} .bot .d{fill:var(--n-mid)} .bot .k{fill:#010801} .bot .r{fill:#ff3c1e} .bot .w{fill:var(--n-pale)}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes armUpL{0%,100%{transform:rotate(0)}50%{transform:rotate(150deg)}}
+@keyframes armUpR{0%,100%{transform:rotate(0)}50%{transform:rotate(-150deg)}}
+@keyframes armSwing{0%,100%{transform:rotate(40deg)}50%{transform:rotate(-40deg)}}
+@keyframes tilt{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@keyframes slide{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(0)}75%{transform:translateX(4px)}}
+@keyframes legL{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes legR{0%,100%{transform:translateY(-2px)}50%{transform:translateY(0)}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.15}}
+@keyframes strobe{0%,49%{opacity:.08}50%,100%{opacity:.28}}
+.run .b1{animation:hop var(--beat) steps(2) infinite}
+.run .b1 .al{animation:armUpL var(--beat) steps(2) infinite}
+.run .b1 .ar{animation:armUpR var(--beat) steps(2) infinite var(--beatH)}
+.run .b1 .hd{animation:tilt var(--beat2) steps(2) infinite}
+.run .b2{animation:slide var(--beat2) steps(4) infinite}
+.run .b2 .al,.run .b2 .ar{animation:armSwing var(--beat) steps(2) infinite}
+.run .b2 .ll{animation:legL var(--beat) steps(2) infinite}
+.run .b2 .lr{animation:legR var(--beat) steps(2) infinite}
+.run .b3{animation:hop var(--beat) steps(2) infinite var(--beatH)}
+.run .b3 .al{animation:armUpL var(--beat) steps(2) infinite var(--beatH)}
+.run .b3 .ar{animation:armUpR var(--beat) steps(2) infinite}
+.run .b3 .hd{animation:tilt var(--beat2) steps(2) infinite var(--beat)}
+.run .fl > span:nth-child(odd){animation:blink var(--beat) steps(1) infinite}
+.run .fl > span:nth-child(even){animation:blink var(--beat) steps(1) infinite var(--beatH)}
+.run .sp{animation:strobe var(--beat) steps(1) infinite}
+/* lista */
+#list{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#list::-webkit-scrollbar{display:none}
+.row{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:4px;min-height:13px;width:100%;align-items:center;padding:0 3px;font-family:'Arimo',sans-serif;font-size:8px;line-height:13px;color:var(--list)}
+.row .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row.on{background:color-mix(in srgb,var(--neon) 22%,#2a2e2a);color:var(--n-pale)}
+.row.off{opacity:.4}
+.row:active{background:color-mix(in srgb,var(--neon) 35%,#000)}
+.msg{font-family:'Arimo',sans-serif;font-size:8px;line-height:12px;color:var(--list);padding:8px;text-align:center;opacity:.85}
+/* capas */
+.layer{position:absolute;inset:0;z-index:20;display:none}
+.layer.show{display:block}
+.panel{position:absolute;left:20px;right:20px;border-radius:12px;padding:30px 14px 14px;box-sizing:border-box}
+.ptitle{position:absolute;left:50%;top:-9px;transform:translateX(-50%);width:150px;height:18px;border-radius:9px;display:grid;place-items:center}
+.ptitle > div{width:142px;height:12px;border-radius:6px;background:linear-gradient(var(--n-dark),var(--n-mid) 50%,var(--n-dark));display:grid;place-items:center;font-family:'Arimo',sans-serif;font-weight:700;font-size:8px;color:var(--n-pale);text-shadow:0 0 3px var(--neon)}
+.prow{display:flex;align-items:center;gap:6px;margin:0 0 9px;font-family:'Arimo',sans-serif;font-size:8px;color:#d8e0d8}
+.prow > span:first-child{width:78px;flex:none}
+.sw{all:unset;box-sizing:border-box;width:14px;height:14px;border-radius:50%;border:1px solid #000;box-shadow:0 0 0 1px #6a706a;cursor:pointer}
+input[type=color]{width:22px;height:16px;padding:0;border:1px solid #000;background:none;border-radius:3px}
+input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
+.field{all:unset;box-sizing:border-box;width:100%;height:18px;padding:0 6px;background:#050805;border:1px solid #000;box-shadow:0 0 0 2px #4a524a;font-family:'Arimo',sans-serif;font-size:8px;color:var(--list);-webkit-user-select:text;user-select:text}
+.small{font-family:'Arimo',sans-serif;font-size:7px;line-height:10px;color:#b8c0b8}
+.code{font-family:'Silkscreen',monospace;font-size:6px;color:var(--neon);word-break:break-all;-webkit-user-select:text;user-select:text}
+</style>
+</head>
+<body>
+<div id="stage">
+<div id="app">
+
+  <!-- ====================== REPRODUCTOR ====================== -->
+  <section aria-label="Reproductor" class="ab" style="left:0;top:4px;width:300px;height:300px">
+    <div class="ab tubev" style="left:40px;top:60px;width:10px;height:160px;border-radius:5px"></div>
+    <div class="ab tubev" style="left:250px;top:60px;width:10px;height:160px;border-radius:5px"></div>
+    <div class="ab metal" style="left:52px;top:6px;width:196px;height:200px;border-radius:98px 98px 60px 60px"></div>
+    <div class="ab chrome" style="left:74px;top:2px;width:22px;height:12px;border-radius:6px"></div>
+    <div class="ab chrome" style="left:204px;top:2px;width:22px;height:12px;border-radius:6px"></div>
+    <div class="ab" style="left:114px;top:2px;display:flex;gap:6px">
+      <span class="gb mini" style="width:14px;height:14px" aria-hidden="true">–</span>
+      <span class="gb mini" style="width:14px;height:14px" aria-hidden="true">x</span>
+      <button id="bSet2" class="gb mini" style="width:14px;height:14px;font-size:7px" aria-label="Ajustes">v</button>
+    </div>
+
+    <!-- pantalla de la canción -->
+    <div class="ab chrome" style="left:70px;top:24px;width:160px;height:112px;border-radius:80px 80px 34px 34px"></div>
+    <div class="ab" style="left:75px;top:29px;width:150px;height:102px;border-radius:75px 75px 30px 30px;background:#010801;overflow:hidden;box-shadow:inset 0 0 14px #000">
+      <div id="rain" style="position:absolute;inset:0;display:flex;justify-content:space-around;opacity:.7"></div>
+      <div style="position:absolute;left:0;right:0;top:20px;text-align:center;font-family:'Tinos',serif;font-weight:700;font-size:13px;letter-spacing:0;background:linear-gradient(#ffffff,#8a948a 50%,#3a423a 52%,#d8e0d8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 3px #000) drop-shadow(0 0 2px var(--neon))">NEBULASOUND</div>
+      <div style="position:absolute;left:14px;right:14px;top:48px;height:12px;overflow:hidden;background:rgba(0,0,0,.6)">
+        <span id="ticker" style="font-family:'Arimo',sans-serif;font-weight:700;font-size:10px;line-height:12px;color:#fff;text-shadow:0 0 3px var(--neon)"></span>
+      </div>
+      <div id="time" style="position:absolute;left:0;right:0;top:64px;text-align:center;font-family:'Arimo',sans-serif;font-weight:700;font-size:13px;color:#fff;text-shadow:0 0 4px var(--neon)">0:00</div>
+    </div>
+
+    <!-- avance y volumen -->
+    <span class="ab lab" style="left:98px;top:142px">SEEK</span>
+    <span class="ab lab" style="left:176px;top:142px">VOLUME</span>
+    <button id="seek" class="ab tube" aria-label="Avance de la canción" style="left:60px;top:150px;width:84px;height:12px;border-radius:6px 2px 2px 6px"></button>
+    <div id="seekRest" class="ab" style="left:61px;top:151px;width:82px;height:10px;border-radius:5px 1px 1px 5px;background:rgba(0,0,0,.72);pointer-events:none;transform-origin:right;transform:scaleX(1)"></div>
+    <button id="vol" class="ab tube" aria-label="Volumen" style="left:156px;top:150px;width:84px;height:12px;border-radius:2px 6px 6px 2px"></button>
+
+    <!-- pantalla de robots -->
+    <div class="ab metal" style="left:62px;top:172px;width:176px;height:92px;border-radius:20px 20px 70px 70px"></div>
+    <div class="ab chrome" style="left:76px;top:180px;width:148px;height:74px;border-radius:10px 10px 40px 40px"></div>
+    <div id="dance" class="ab" style="left:81px;top:185px;width:138px;height:64px;border-radius:7px 7px 36px 36px;background:#010801;overflow:hidden;box-shadow:inset 0 0 12px #000" role="img" aria-label="Robots bailando al ritmo de la música">
+      <div class="sp" style="position:absolute;left:14px;top:0;width:46px;height:64px;background:linear-gradient(var(--neon),transparent);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);opacity:.08"></div>
+      <div class="sp" style="position:absolute;right:14px;top:0;width:46px;height:64px;background:linear-gradient(var(--neon),transparent);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);opacity:.08"></div>
+      <span id="danceL" class="px" style="position:absolute;left:8px;top:4px;opacity:.85">ROBO.DANCE</span>
+      <span id="danceR" class="px" style="position:absolute;right:8px;top:4px;opacity:.85">PAUSA</span>
+
+      <svg class="bot b1" style="position:absolute;left:22px;top:18px;overflow:visible" width="24" height="30" viewBox="0 0 16 20" shape-rendering="crispEdges" aria-hidden="true">
+        <g class="hd"><rect class="n" x="7.5" y="0" width="1" height="2"/><rect class="w" x="7" y="0" width="2" height="1"/><rect class="n" x="4" y="2" width="8" height="5"/><rect class="k" x="5" y="3" width="2" height="2"/><rect class="k" x="9" y="3" width="2" height="2"/><rect class="d" x="6" y="6" width="4" height="1"/></g>
+        <rect class="n" x="3" y="8" width="10" height="7"/><rect class="d" x="6" y="10" width="4" height="2"/><rect class="w" x="6" y="10" width="1" height="1"/>
+        <g class="al"><rect class="n" x="1" y="8" width="2" height="5"/><rect class="l" x="1" y="13" width="2" height="1"/></g>
+        <g class="ar"><rect class="n" x="13" y="8" width="2" height="5"/><rect class="l" x="13" y="13" width="2" height="1"/></g>
+        <g class="ll"><rect class="n" x="4" y="15" width="3" height="4"/><rect class="l" x="3" y="19" width="4" height="1"/></g>
+        <g class="lr"><rect class="n" x="9" y="15" width="3" height="4"/><rect class="l" x="9" y="19" width="4" height="1"/></g>
+      </svg>
+      <svg class="bot b2" style="position:absolute;left:53px;top:10px;overflow:visible" width="32" height="40" viewBox="0 0 16 20" shape-rendering="crispEdges" aria-hidden="true">
+        <g class="hd"><rect class="n" x="3" y="0" width="1" height="2"/><rect class="n" x="12" y="0" width="1" height="2"/><rect class="n" x="3" y="2" width="10" height="5"/><rect class="k" x="4" y="3" width="8" height="2"/><rect class="r" x="5" y="3" width="2" height="2"/><rect class="r" x="9" y="3" width="2" height="2"/></g>
+        <rect class="n" x="4" y="8" width="8" height="7"/><rect class="d" x="5" y="9" width="6" height="1"/><rect class="d" x="5" y="11" width="6" height="1"/><rect class="d" x="5" y="13" width="6" height="1"/>
+        <g class="al"><rect class="n" x="2" y="8" width="2" height="6"/></g>
+        <g class="ar"><rect class="n" x="12" y="8" width="2" height="6"/></g>
+        <g class="ll"><rect class="n" x="5" y="15" width="2" height="4"/><rect class="l" x="4" y="19" width="3" height="1"/></g>
+        <g class="lr"><rect class="n" x="9" y="15" width="2" height="4"/><rect class="l" x="9" y="19" width="3" height="1"/></g>
+      </svg>
+      <svg class="bot b3" style="position:absolute;left:92px;top:18px;overflow:visible" width="24" height="30" viewBox="0 0 16 20" shape-rendering="crispEdges" aria-hidden="true">
+        <g class="hd"><rect class="l" x="5" y="1" width="6" height="1"/><rect class="n" x="4" y="2" width="8" height="5"/><rect class="k" x="5" y="4" width="6" height="1"/><rect class="w" x="6" y="4" width="1" height="1"/></g>
+        <rect class="n" x="4" y="8" width="8" height="6"/><rect class="d" x="7" y="9" width="2" height="4"/>
+        <g class="al"><rect class="n" x="2" y="8" width="2" height="5"/><rect class="l" x="1" y="13" width="3" height="1"/></g>
+        <g class="ar"><rect class="n" x="12" y="8" width="2" height="5"/><rect class="l" x="12" y="13" width="3" height="1"/></g>
+        <g class="ll"><rect class="n" x="5" y="14" width="2" height="5"/><rect class="l" x="4" y="19" width="3" height="1"/></g>
+        <g class="lr"><rect class="n" x="9" y="14" width="2" height="5"/><rect class="l" x="9" y="19" width="3" height="1"/></g>
+      </svg>
+      <div class="fl" style="position:absolute;left:18px;right:18px;top:51px;height:3px;display:flex;gap:2px">
+        <span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span><span style="flex:1;background:var(--neon)"></span>
+      </div>
+    </div>
+
+    <div class="ab chrome" style="left:140px;top:262px;width:20px;height:30px;border-radius:4px 4px 10px 10px"></div>
+    <div class="ab tube" style="left:104px;top:270px;width:30px;height:8px;border-radius:4px"></div>
+    <div class="ab tube" style="left:166px;top:270px;width:30px;height:8px;border-radius:4px"></div>
+
+    <!-- columna de botones -->
+    <div class="ab" style="left:4px;top:6px;width:34px;display:flex;flex-direction:column;align-items:center;gap:7px">
+      <button id="bPL" class="gb" style="width:22px;height:22px" aria-label="Elegir playlist">PL</button>
+      <button id="bEQ" class="gb" style="width:22px;height:22px" aria-label="Ajustes">EQ</button>
+      <button id="bEject" class="gb" style="width:30px;height:30px" aria-label="Abrir Spotify"><svg width="10" height="9" viewBox="0 0 10 9" aria-hidden="true"><path d="M5 0l5 5H0zM0 7h10v2H0z" fill="currentColor"/></svg></button>
+      <button id="bPrev" class="gb" style="width:26px;height:26px" aria-label="Anterior"><svg width="10" height="7" viewBox="0 0 10 7" aria-hidden="true"><path d="M5 0v7L0 3.5zM10 0v7L5 3.5z" fill="currentColor"/></svg></button>
+      <button id="bPause" class="gb" style="width:26px;height:26px" aria-label="Pausa"><svg width="7" height="8" viewBox="0 0 7 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h2v8H0zM5 0h2v8H5z" fill="currentColor"/></svg></button>
+      <button id="bPlay" class="gb" style="width:34px;height:34px" aria-label="Reproducir"><svg width="11" height="13" viewBox="0 0 11 13" aria-hidden="true"><path d="M0 0l11 6.5L0 13z" fill="currentColor"/></svg></button>
+      <button id="bStop" class="gb" style="width:26px;height:26px" aria-label="Detener"><svg width="7" height="7" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h7v7H0z" fill="currentColor"/></svg></button>
+      <button id="bNext" class="gb" style="width:26px;height:26px" aria-label="Siguiente"><svg width="10" height="7" viewBox="0 0 10 7" aria-hidden="true"><path d="M0 0v7l5-3.5zM5 0v7l5-3.5z" fill="currentColor"/></svg></button>
+    </div>
+  </section>
+
+  <!-- ====================== ECUALIZADOR ====================== -->
+  <section aria-label="Ecualizador" class="ab" style="left:16px;top:304px;width:268px;height:92px">
+    <div class="ab chrome" style="left:0;top:10px;width:14px;height:72px;border-radius:7px 2px 2px 7px"></div>
+    <div class="ab chrome" style="left:254px;top:10px;width:14px;height:72px;border-radius:2px 7px 7px 2px"></div>
+    <div class="ab metal" style="left:12px;top:0;width:244px;height:92px;border-radius:10px"></div>
+    <span id="led" class="ab gb mini" style="left:230px;top:5px;width:8px;height:8px" aria-hidden="true"></span>
+    <div class="ab" style="left:22px;top:12px;width:224px;height:70px;background:#000;border:1px solid #000;border-radius:4px;box-shadow:0 0 0 2px #5a625a,inset 0 0 8px #000">
+      <span class="ab" style="left:6px;top:4px;font-family:'Arimo';font-weight:700;font-size:7px;color:var(--neon)">ON</span>
+      <span class="ab" style="left:22px;top:4px;font-family:'Arimo';font-weight:700;font-size:7px;color:var(--neon)">AUTO</span>
+      <span id="device" class="ab" style="right:6px;top:4px;font-family:'Arimo';font-weight:700;font-size:7px;color:#5a645a;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">SIN DISPOSITIVO</span>
+      <div id="eq" class="ab" style="left:8px;top:16px;width:206px;height:48px;display:flex;align-items:flex-end;gap:4px;border:1px solid color-mix(in srgb,var(--neon) 20%,#000);padding:2px 4px;box-sizing:border-box"></div>
+    </div>
+  </section>
+
+  <!-- ====================== PLAYLIST ====================== -->
+  <section aria-label="Lista de canciones" class="ab" style="left:6px;top:402px;width:288px;height:244px">
+    <div class="ab tubev" style="left:0;top:20px;width:9px;height:204px;border-radius:4px"></div>
+    <div class="ab tubev" style="left:279px;top:20px;width:9px;height:204px;border-radius:4px"></div>
+    <div class="ab metal" style="left:8px;top:0;width:272px;height:244px;border-radius:12px"></div>
+    <div class="ab" style="left:8px;top:8px;width:272px;height:8px;background:repeating-linear-gradient(90deg,#1a1e1a 0 2px,var(--m-hi) 2px 3px)"></div>
+    <button id="plTitle" class="ab chrome" style="all:unset;position:absolute;box-sizing:border-box;left:74px;top:3px;width:140px;height:18px;border-radius:9px;display:grid;place-items:center;cursor:pointer;background:linear-gradient(#f0f4f0,#8c958c 40%,#2e332e 55%,#a6b0a6 80%,#e4ece4);border:1px solid #000" aria-label="Elegir playlist">
+      <div style="width:132px;height:12px;border-radius:6px;background:linear-gradient(var(--n-dark),var(--n-mid) 50%,var(--n-dark));display:grid;place-items:center;font-family:'Arimo',sans-serif;font-weight:700;font-size:8px;color:var(--n-pale);text-shadow:0 0 3px var(--neon);overflow:hidden"><span id="plName" style="max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">ELIGE UNA PLAYLIST</span></div>
+    </button>
+    <div id="list" class="ab" style="left:18px;top:26px;width:252px;height:188px;background:#050805;border:1px solid #000;box-shadow:0 0 0 2px #4a524a;padding-top:2px;box-sizing:border-box"></div>
+    <div class="ab" style="left:22px;top:220px;display:flex;gap:2px">
+      <button id="cLists" class="cbtn" style="width:38px">Listas</button>
+      <button id="cTracks" class="cbtn" style="width:38px">Temas</button>
+      <button id="cNow" class="cbtn" style="width:38px">Actual</button>
+      <button id="cSet" class="cbtn" style="width:40px">Ajustes</button>
+    </div>
+    <button id="cSpot" class="cbtn ab" style="left:204px;top:220px;width:60px">Abrir Spotify</button>
+  </section>
+
+  <!-- ====================== AVISO ====================== -->
+  <div id="alert" class="layer" style="background:rgba(0,0,0,.6)">
+    <div class="panel metal" style="top:190px">
+      <div class="ptitle chrome"><div>AVISO</div></div>
+      <p id="alertTxt" class="small" style="margin:0 0 12px;font-size:8px;line-height:12px;color:#e8f0e8"></p>
+      <div style="display:flex;gap:6px;justify-content:center">
+        <button id="alertGo" class="cbtn" style="width:80px;display:none">Abrir Spotify</button>
+        <button id="alertOk" class="cbtn" style="width:60px">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== AJUSTES ====================== -->
+  <div id="settings" class="layer" style="background:rgba(0,0,0,.6)">
+    <div class="panel metal" style="top:90px">
+      <div class="ptitle chrome"><div>AJUSTES</div></div>
+      <div class="prow"><span>Neón principal</span><span id="swNeon" style="display:flex;gap:4px"></span><input id="inNeon" type="color" aria-label="Color neón"></div>
+      <div class="prow"><span>Texto de la lista</span><span id="swList" style="display:flex;gap:4px"></span><input id="inList" type="color" aria-label="Color texto lista"></div>
+      <div class="prow"><span>Fondo</span><span id="swBg" style="display:flex;gap:4px"></span><input id="inBg" type="color" aria-label="Color de fondo"></div>
+      <div class="prow"><span>Metal</span><span id="swMetal" style="display:flex;gap:4px"></span></div>
+      <div class="prow"><span>Baile robots</span><input id="inBpm" type="range" min="70" max="170" step="5" aria-label="Velocidad del baile"><span id="bpmTxt" class="code" style="width:54px;text-align:right;white-space:nowrap">120</span></div>
+      <div style="display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+        <button id="sReset" class="cbtn" style="width:70px">Restablecer</button>
+        <button id="sLogout" class="cbtn" style="width:70px">Cerrar sesión</button>
+        <button id="sClose" class="cbtn" style="width:50px">Listo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== ENTRADA / LOGIN ====================== -->
+  <div id="login" class="layer" style="background:var(--bg)">
+    <div class="panel metal" style="top:120px">
+      <div class="ptitle chrome"><div>NEBULASOUND</div></div>
+      <div id="loginConnect">
+        <p class="small" style="margin:0 0 12px;text-align:center;font-size:8px;line-height:12px">Conecta tu cuenta de Spotify para ver tus playlists y controlar la música desde aquí.</p>
+        <div style="display:flex;justify-content:center"><button id="bLogin" class="cbtn" style="width:120px;height:18px;border-radius:9px;font-size:8px">CONECTAR SPOTIFY</button></div>
+        <p id="loginErr" class="small" style="margin:10px 0 0;text-align:center;color:#ff8a7a"></p>
+        <p style="margin:12px 0 0;text-align:center"><button id="bChangeId" class="cbtn" style="width:90px;display:inline-grid">Cambiar Client ID</button></p>
+      </div>
+      <div id="loginSetup" style="display:none">
+        <p class="small" style="margin:0 0 8px">Paso único: pega el <b>Client ID</b> de tu app de Spotify (developer.spotify.com).</p>
+        <input id="inClient" class="field" placeholder="Client ID" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <p class="small" style="margin:10px 0 4px">En Spotify, la <b>Redirect URI</b> debe ser exactamente:</p>
+        <p id="redir" class="code" style="margin:0 0 10px"></p>
+        <div style="display:flex;gap:6px;justify-content:center">
+          <button id="bCopy" class="cbtn" style="width:70px">Copiar URI</button>
+          <button id="bSaveId" class="cbtn" style="width:70px">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================== CONFIGURACIÓN ================== */
+  // Opcional: puedes pegar aquí tu Client ID. Si queda vacío, la app lo pide en pantalla.
+  var CLIENT_ID_FIJO = '';
+  var SCOPES = 'playlist-read-private playlist-read-collaborative user-read-playback-state user-modify-playback-state user-read-currently-playing';
+  var API = 'https://api.spotify.com/v1';
+  var K_TOK = 'ns_tok', K_CFG = 'ns_cfg', K_ID = 'ns_client_id', K_VER = 'ns_pkce', K_STATE = 'ns_state';
+
+  var DEF = { neon: '#3dff3d', list: '#e8f0e8', bg: '#000000', metal: 'grafito', bpm: 120, plId: '', plName: '' };
+  var METALES = {
+    grafito: ['#6a706a', '#2a2e2a', '#0e100e', '#9aa29a'],
+    plata:   ['#c8ccc8', '#6e746e', '#2a2e2a', '#f2f4f2'],
+    morado:  ['#6a5f8a', '#2e2848', '#100c1c', '#a39ac8'],
+    azul:    ['#5f7690', '#22344a', '#0a1420', '#9ab4cc'],
+    rojo:    ['#8a5f5f', '#3e2222', '#160a0a', '#c89a9a']
+  };
+  var SW_NEON = ['#3dff3d', '#38e1ff', '#c86bff', '#ff3c7a', '#ffb21e'];
+  var SW_LIST = ['#e8f0e8', '#b8ffb8', '#ffffff', '#ffd98a'];
+  var SW_BG = ['#000000', '#0a0f1e', '#140a1e', '#1a1a1a'];
+
+  /* ================== UTILIDADES ================== */
+  function $(id) { return document.getElementById(id); }
+  function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  function mmss(ms) { ms = Math.max(0, ms || 0); var s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  var cfg = Object.assign({}, DEF, load(K_CFG, {}));
+  var tok = load(K_TOK, null);
+  var S = { me: null, playlists: [], tracks: [], view: 'tracks', player: null, at: 0, deviceId: null };
+
+  /* ================== ESCALA (el diseño mide 300×649 y se agranda al celular) ================== */
+  function fit() {
+    var top = parseFloat(getComputedStyle($('stage')).paddingTop) || 0;
+    var z = Math.min(window.innerWidth / 300, (window.innerHeight - top) / 649);
+    $('app').style.zoom = z;
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
+
+  /* ================== DECORADO: lluvia y ecualizador ================== */
+  (function () {
+    var G = 'ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ01', rain = $('rain');
+    for (var k = 0; k < 13; k++) {
+      var s = ''; for (var j = 0; j < 30; j++) s += G.charAt((k * 7 + j * 11 + k * j) % G.length) + '\n';
+      var d = document.createElement('div'); d.textContent = s; rain.appendChild(d);
+    }
+    var H = [14, 22, 30, 18, 26, 36, 24, 32, 20, 28, 16], eq = $('eq');
+    H.forEach(function (h) { var b = document.createElement('div'); b.style.height = h + 'px'; eq.appendChild(b); });
+  })();
+
+  /* ================== AJUSTES DE COLOR ================== */
+  function applyCfg() {
+    var r = document.documentElement.style;
+    r.setProperty('--neon', cfg.neon);
+    r.setProperty('--list', cfg.list);
+    r.setProperty('--bg', cfg.bg);
+    var m = METALES[cfg.metal] || METALES.grafito;
+    r.setProperty('--m-hi', m[0]); r.setProperty('--m-mid', m[1]); r.setProperty('--m-lo', m[2]); r.setProperty('--m-edge', m[3]);
+    r.setProperty('--beat', (60 / cfg.bpm).toFixed(3) + 's');
+    document.querySelector('meta[name=theme-color]').setAttribute('content', cfg.bg);
+    $('inNeon').value = cfg.neon; $('inList').value = cfg.list; $('inBg').value = cfg.bg;
+    $('inBpm').value = cfg.bpm; $('bpmTxt').textContent = cfg.bpm + ' BPM';
+    updateDanceLabel();
+  }
+  function setCfg(k, v) { cfg[k] = v; save(K_CFG, cfg); applyCfg(); }
+  function swatches(boxId, list, key) {
+    var box = $(boxId);
+    list.forEach(function (c) {
+      var b = document.createElement('button'); b.className = 'sw'; b.style.background = c; b.setAttribute('aria-label', 'Color ' + c);
+      b.addEventListener('click', function () { setCfg(key, c); }); box.appendChild(b);
+    });
+  }
+  swatches('swNeon', SW_NEON, 'neon'); swatches('swList', SW_LIST, 'list'); swatches('swBg', SW_BG, 'bg');
+  Object.keys(METALES).forEach(function (name) {
+    var b = document.createElement('button'); b.className = 'sw';
+    b.style.background = 'radial-gradient(circle at 40% 30%,' + METALES[name][0] + ',' + METALES[name][2] + ')';
+    b.setAttribute('aria-label', 'Metal ' + name);
+    b.addEventListener('click', function () { setCfg('metal', name); }); $('swMetal').appendChild(b);
+  });
+  $('inNeon').addEventListener('input', function (e) { setCfg('neon', e.target.value); });
+  $('inList').addEventListener('input', function (e) { setCfg('list', e.target.value); });
+  $('inBg').addEventListener('input', function (e) { setCfg('bg', e.target.value); });
+  $('inBpm').addEventListener('input', function (e) { setCfg('bpm', parseInt(e.target.value, 10) || 120); });
+  $('sReset').addEventListener('click', function () { cfg.neon = DEF.neon; cfg.list = DEF.list; cfg.bg = DEF.bg; cfg.metal = DEF.metal; cfg.bpm = DEF.bpm; save(K_CFG, cfg); applyCfg(); });
+  function openSettings() { $('settings').classList.add('show'); }
+  $('sClose').addEventListener('click', function () { $('settings').classList.remove('show'); });
+  $('bEQ').addEventListener('click', openSettings); $('cSet').addEventListener('click', openSettings); $('bSet2').addEventListener('click', openSettings);
+
+  /* ================== AVISOS ================== */
+  var flashT = null;
+  function flash(txt) { // mensaje corto en la pantalla de robots
+    $('danceL').textContent = txt.toUpperCase();
+    clearTimeout(flashT); flashT = setTimeout(function () { $('danceL').textContent = 'ROBO.DANCE'; }, 4500);
+  }
+  function alertBox(txt, withSpotify) {
+    $('alertTxt').textContent = txt;
+    $('alertGo').style.display = withSpotify ? 'grid' : 'none';
+    $('alert').classList.add('show');
+  }
+  $('alertOk').addEventListener('click', function () { $('alert').classList.remove('show'); });
+  function openSpotify() { window.location.href = 'spotify:'; }
+  $('alertGo').addEventListener('click', function () { $('alert').classList.remove('show'); openSpotify(); });
+  $('bEject').addEventListener('click', openSpotify); $('cSpot').addEventListener('click', openSpotify);
+
+  /* ================== LOGIN CON SPOTIFY (PKCE, sin clave secreta) ================== */
+  function clientId() { return (CLIENT_ID_FIJO || localStorage.getItem(K_ID) || '').trim(); }
+  function redirectUri() { return location.origin + location.pathname; }
+
+  function showLogin(err) {
+    $('login').classList.add('show');
+    var needId = !clientId();
+    $('loginSetup').style.display = needId ? 'block' : 'none';
+    $('loginConnect').style.display = needId ? 'none' : 'block';
+    $('redir').textContent = redirectUri();
+    $('inClient').value = clientId();
+    $('loginErr').textContent = err || '';
+  }
+  $('bChangeId').addEventListener('click', function () {
+    $('loginSetup').style.display = 'block'; $('loginConnect').style.display = 'none';
+  });
+  $('bSaveId').addEventListener('click', function () {
+    var v = $('inClient').value.trim();
+    if (!/^[0-9a-f]{32}$/i.test(v)) { alertBox('Ese Client ID no parece válido. Debe tener 32 letras y números, sin espacios.'); return; }
+    localStorage.setItem(K_ID, v); showLogin();
+  });
+  $('bCopy').addEventListener('click', function () {
+    var t = redirectUri();
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { flash('URI copiada'); alertBox('Dirección copiada. Pégala en Spotify como Redirect URI.'); });
+  });
+
+  function randStr(n) {
+    var c = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', a = new Uint8Array(n), s = '';
+    crypto.getRandomValues(a); for (var i = 0; i < n; i++) s += c.charAt(a[i] % c.length); return s;
+  }
+  async function challenge(v) {
+    var d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(d))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  $('bLogin').addEventListener('click', async function () {
+    var v = randStr(64), st = randStr(16);
+    localStorage.setItem(K_VER, v); localStorage.setItem(K_STATE, st);
+    var q = new URLSearchParams({
+      response_type: 'code', client_id: clientId(), scope: SCOPES, redirect_uri: redirectUri(),
+      code_challenge_method: 'S256', code_challenge: await challenge(v), state: st
+    });
+    location.href = 'https://accounts.spotify.com/authorize?' + q.toString();
+  });
+
+  async function tokenCall(params) {
+    var r = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(params)
+    });
+    var j = await r.json().catch(function () { return {}; });
+    if (!r.ok) { var e = new Error(j.error_description || j.error || ('error ' + r.status)); e.status = r.status; throw e; }
+    tok = { access: j.access_token, refresh: j.refresh_token || (tok && tok.refresh), exp: Date.now() + (j.expires_in - 60) * 1000 };
+    save(K_TOK, tok);
+  }
+  var refreshing = null;
+  function refreshTok() {
+    if (!refreshing) {
+      refreshing = tokenCall({ grant_type: 'refresh_token', refresh_token: tok.refresh, client_id: clientId() })
+        .finally(function () { refreshing = null; });
+    }
+    return refreshing;
+  }
+
+  /* llamada a la API de Spotify con renovación automática de la sesión */
+  async function api(path, opt) {
+    opt = opt || {};
+    if (!tok) throw Object.assign(new Error('sin sesión'), { status: 401 });
+    if (Date.now() > tok.exp) await refreshTok();
+    var url = path.indexOf('http') === 0 ? path : API + path;
+    for (var intento = 0; intento < 3; intento++) {
+      var r = await fetch(url, {
+        method: opt.method || 'GET',
+        headers: Object.assign({ Authorization: 'Bearer ' + tok.access }, opt.body ? { 'Content-Type': 'application/json' } : {}),
+        body: opt.body ? JSON.stringify(opt.body) : undefined
+      });
+      if (r.status === 401 && intento === 0) { await refreshTok(); continue; }
+      if (r.status === 429) { await sleep((parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000); continue; }
+      if (r.status === 204 || r.status === 202) return null;
+      var txt = await r.text(), j = null;
+      try { j = txt ? JSON.parse(txt) : null; } catch (e) { j = null; }
+      if (!r.ok) {
+        var err = new Error((j && j.error && j.error.message) || ('error ' + r.status));
+        err.status = r.status; err.reason = j && j.error && j.error.reason; throw err;
+      }
+      return j;
+    }
+    throw new Error('Spotify no responde');
+  }
+
+  /* ================== PLAYLISTS Y CANCIONES ================== */
+  async function loadPlaylists() {
+    var out = [], url = '/me/playlists?limit=50', guard = 0;
+    while (url && guard++ < 10) {
+      var j = await api(url);
+      (j.items || []).forEach(function (p) {
+        if (!p) return;
+        var mine = (p.owner && S.me && p.owner.id === S.me.id) || p.collaborative;
+        if (!mine) return; // solo las tuyas o colaborativas (Spotify no entrega el resto)
+        var tot = (p.items && p.items.total) || (p.tracks && p.tracks.total) || 0;
+        out.push({ id: p.id, name: p.name || '(sin nombre)', total: tot });
+      });
+      url = j.next || null;
+    }
+    S.playlists = out;
+  }
+  async function loadTracks(plId) {
+    var out = [], url = '/playlists/' + plId + '/items?limit=50', guard = 0;
+    while (url && guard++ < 30) {
+      var j = await api(url);
+      (j.items || []).forEach(function (it) {
+        var t = it && (it.item || it.track);
+        if (!t || !t.uri) return;
+        out.push({
+          uri: t.uri, name: t.name || '(sin título)',
+          artist: (t.artists || (t.show ? [t.show] : [])).map(function (a) { return a.name; }).join(', '),
+          dur: t.duration_ms || 0, local: !!t.is_local
+        });
+      });
+      url = j.next || null;
+    }
+    S.tracks = out;
+  }
+
+  function renderList() {
+    var box = $('list'); box.textContent = '';
+    if (S.view === 'lists') {
+      if (!S.playlists.length) { msg('No encontré playlists tuyas. Crea o copia una en Spotify y vuelve a tocar "Listas".'); return; }
+      S.playlists.forEach(function (p, i) {
+        var b = document.createElement('button'); b.className = 'row';
+        if (p.id === cfg.plId) b.classList.add('on');
+        var t = document.createElement('span'); t.className = 't'; t.textContent = (i + 1) + '. ' + p.name;
+        var n = document.createElement('span'); n.textContent = p.total + ' temas';
+        b.appendChild(t); b.appendChild(n);
+        b.addEventListener('click', function () { choosePlaylist(p); });
+        box.appendChild(b);
+      });
+      return;
+    }
+    if (!cfg.plId) { msg('Toca PL o "Listas" para elegir una de tus playlists.'); return; }
+    if (!S.tracks.length) { msg('Esta playlist no tiene canciones (o Spotify no deja leerla).'); return; }
+    var nowUri = S.player && S.player.item && S.player.item.uri;
+    S.tracks.forEach(function (t, i) {
+      var b = document.createElement('button'); b.className = 'row';
+      if (t.uri === nowUri) b.classList.add('on');
+      if (t.local) b.classList.add('off');
+      var s = document.createElement('span'); s.className = 't'; s.textContent = (i + 1) + '. ' + t.artist + ' - ' + t.name;
+      var d = document.createElement('span'); d.textContent = mmss(t.dur);
+      b.appendChild(s); b.appendChild(d);
+      b.addEventListener('click', function () { playIndex(i); });
+      box.appendChild(b);
+    });
+    function msg(m) { var p = document.createElement('div'); p.className = 'msg'; p.textContent = m; box.appendChild(p); }
+  }
+  function msgList(m) { var box = $('list'); box.textContent = ''; var p = document.createElement('div'); p.className = 'msg'; p.textContent = m; box.appendChild(p); }
+
+  async function showPlaylists() {
+    S.view = 'lists'; $('plName').textContent = 'TUS PLAYLISTS';
+    msgList('Cargando tus playlists…');
+    try { await loadPlaylists(); renderList(); } catch (e) { handleErr(e); }
+  }
+  async function choosePlaylist(p) {
+    cfg.plId = p.id; cfg.plName = p.name; save(K_CFG, cfg);
+    S.view = 'tracks'; $('plName').textContent = p.name.toUpperCase();
+    msgList('Cargando canciones…');
+    try { await loadTracks(p.id); renderList(); } catch (e) { handleErr(e); }
+  }
+  function showTracks() {
+    S.view = 'tracks'; $('plName').textContent = cfg.plName ? cfg.plName.toUpperCase() : 'ELIGE UNA PLAYLIST'; renderList();
+  }
+  function scrollToNow() {
+    if (S.view !== 'tracks') showTracks();
+    var on = $('list').querySelector('.row.on'); if (on) on.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  $('bPL').addEventListener('click', function () { S.view === 'lists' ? showTracks() : showPlaylists(); });
+  $('plTitle').addEventListener('click', showPlaylists);
+  $('cLists').addEventListener('click', showPlaylists);
+  $('cTracks').addEventListener('click', showTracks);
+  $('cNow').addEventListener('click', scrollToNow);
+
+  /* ================== CONTROL DE REPRODUCCIÓN ================== */
+  // Spotify toca la música en tu app de Spotify; aquí elegimos en qué dispositivo.
+  async function deviceQuery() {
+    if (S.player && S.player.device && S.player.device.is_active) return '';
+    var j = await api('/me/player/devices');
+    var list = (j && j.devices) || [];
+    if (!list.length) throw Object.assign(new Error('sin dispositivo'), { reason: 'NO_ACTIVE_DEVICE' });
+    var d = list.find(function (x) { return x.is_active; }) || list.find(function (x) { return x.type === 'Smartphone'; }) || list[0];
+    S.deviceId = d.id;
+    return '?device_id=' + encodeURIComponent(d.id);
+  }
+  async function act(fn) {
+    try { await fn(); setTimeout(poll, 450); setTimeout(poll, 1500); }
+    catch (e) { handleErr(e); }
+  }
+  function playIndex(i) {
+    act(async function () {
+      var q = await deviceQuery();
+      await api('/me/player/play' + q, { method: 'PUT', body: { context_uri: 'spotify:playlist:' + cfg.plId, offset: { position: i } } });
+      flash('Tocando');
+    });
+  }
+  $('bPlay').addEventListener('click', function () {
+    if (S.player && S.player.item) {
+      act(async function () { var q = await deviceQuery(); await api('/me/player/play' + q, { method: 'PUT' }); });
+    } else if (cfg.plId && S.tracks.length) { playIndex(0); }
+    else { alertBox('Primero elige una playlist (botón PL) y toca una canción.'); }
+  });
+  $('bPause').addEventListener('click', function () { act(function () { return api('/me/player/pause', { method: 'PUT' }); }); });
+  $('bStop').addEventListener('click', function () {
+    act(async function () { await api('/me/player/pause', { method: 'PUT' }); await api('/me/player/seek?position_ms=0', { method: 'PUT' }); });
+  });
+  $('bNext').addEventListener('click', function () { act(function () { return api('/me/player/next', { method: 'POST' }); }); });
+  $('bPrev').addEventListener('click', function () { act(function () { return api('/me/player/previous', { method: 'POST' }); }); });
+
+  function ratio(e, el) {
+    var r = el.getBoundingClientRect(); var x = (e.clientX - r.left) / r.width;
+    return Math.min(1, Math.max(0, x));
+  }
+  $('seek').addEventListener('click', function (e) {
+    if (!S.player || !S.player.item) return;
+    var pos = Math.round(ratio(e, this) * S.player.item.duration_ms);
+    S.player.progress = pos; S.at = Date.now(); paintTime();
+    act(function () { return api('/me/player/seek?position_ms=' + pos, { method: 'PUT' }); });
+  });
+  $('vol').addEventListener('click', function (e) {
+    var v = Math.round(ratio(e, this) * 100);
+    api('/me/player/volume?volume_percent=' + v, { method: 'PUT' }).then(function () { flash('Volumen ' + v + '%'); })
+      .catch(function () { alertBox('El iPhone no deja cambiar el volumen de Spotify desde otra app. Usa los botones laterales del teléfono.'); });
+  });
+
+  /* ================== ESTADO EN VIVO (cada 3 segundos) ================== */
+  var pollBusy = false;
+  async function poll() {
+    if (!tok || pollBusy || document.visibilityState === 'hidden') return;
+    pollBusy = true;
+    try {
+      var j = await api('/me/player');
+      if (!j || !j.item) { S.player = j ? { playing: false, progress: 0, item: null, device: j.device } : null; }
+      else {
+        S.player = { playing: !!j.is_playing, progress: j.progress_ms || 0, device: j.device,
+          item: { uri: j.item.uri, name: j.item.name, artist: (j.item.artists || []).map(function (a) { return a.name; }).join(', '), duration_ms: j.item.duration_ms } };
+      }
+      S.at = Date.now();
+      paintNow();
+    } catch (e) { if (e.status === 401) handleErr(e); }
+    finally { pollBusy = false; }
+  }
+  var lastUri = null;
+  function paintNow() {
+    var p = S.player, playing = !!(p && p.playing);
+    $('app').classList.toggle('run', playing);
+    var dev = p && p.device ? p.device.name : 'SIN DISPOSITIVO';
+    $('device').textContent = dev.toUpperCase();
+    var txt = p && p.item ? (p.item.artist + ' - ' + p.item.name + '   ') : 'Nada sonando · elige una canción   ';
+    if ($('ticker').dataset.t !== txt) { $('ticker').dataset.t = txt; $('ticker').textContent = txt + txt; }
+    var uri = p && p.item && p.item.uri;
+    if (uri !== lastUri) { lastUri = uri; if (S.view === 'tracks') renderList(); }
+    updateDanceLabel();
+    paintTime();
+  }
+  function updateDanceLabel() {
+    var playing = S.player && S.player.playing;
+    $('danceR').textContent = playing ? cfg.bpm + ' BPM' : 'PAUSA';
+  }
+  function paintTime() {
+    var p = S.player;
+    if (!p || !p.item) { $('time').textContent = '0:00'; $('seekRest').style.transform = 'scaleX(1)'; return; }
+    var cur = p.progress + (p.playing ? Date.now() - S.at : 0);
+    cur = Math.min(cur, p.item.duration_ms);
+    $('time').textContent = mmss(cur);
+    $('seekRest').style.transform = 'scaleX(' + (1 - cur / (p.item.duration_ms || 1)).toFixed(3) + ')';
+  }
+  setInterval(paintTime, 500);
+  setInterval(poll, 3000);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') poll(); });
+
+  /* ================== ERRORES EN ESPAÑOL ================== */
+  function handleErr(e) {
+    console.warn(e);
+    if (e.reason === 'NO_ACTIVE_DEVICE' || (e.status === 404 && /device/i.test(e.message))) {
+      alertBox('Spotify no está activo en tu iPhone. Ábrelo un momento (botón de abajo), vuelve aquí y toca la canción de nuevo.', true);
+    } else if (e.reason === 'PREMIUM_REQUIRED') {
+      alertBox('Spotify pide una cuenta Premium para controlar la música.');
+    } else if (e.status === 401 || (e.status === 400 && /refresh|grant/i.test(e.message))) {
+      del(K_TOK); tok = null; showLogin('Tu sesión de Spotify venció. Conéctate de nuevo.');
+    } else if (e.status === 403) {
+      alertBox('Spotify no permitió esa acción. Si es la primera vez, revisa que tu correo esté en "User Management" de tu app en developer.spotify.com.');
+    } else {
+      flash('Error de conexión');
+    }
+  }
+
+  $('sLogout').addEventListener('click', function () {
+    del(K_TOK); tok = null; $('settings').classList.remove('show'); showLogin('Sesión cerrada.');
+  });
+
+  /* ================== ARRANQUE ================== */
+  async function start() {
+    $('login').classList.remove('show');
+    try {
+      S.me = await api('/me');
+      if (cfg.plId) {
+        $('plName').textContent = (cfg.plName || 'PLAYLIST').toUpperCase(); msgList('Cargando canciones…');
+        try { await loadTracks(cfg.plId); } catch (e) { cfg.plId = ''; save(K_CFG, cfg); }
+        showTracks();
+      } else { await showPlaylists(); }
+      poll();
+    } catch (e) { handleErr(e); }
+  }
+
+  async function boot() {
+    applyCfg(); fit(); renderList(); paintNow();
+    var q = new URLSearchParams(location.search);
+    if (q.get('error')) {
+      history.replaceState(null, '', location.pathname);
+      showLogin(q.get('error') === 'access_denied' ? 'No diste permiso en Spotify.' : 'Spotify respondió: ' + q.get('error'));
+      return;
+    }
+    if (q.get('code')) {
+      var code = q.get('code'), st = q.get('state');
+      history.replaceState(null, '', location.pathname);
+      if (st !== localStorage.getItem(K_STATE)) { showLogin('El inicio de sesión no coincidió. Intenta de nuevo.'); return; }
+      try {
+        await tokenCall({ grant_type: 'authorization_code', code: code, redirect_uri: redirectUri(), client_id: clientId(), code_verifier: localStorage.getItem(K_VER) });
+        del(K_VER); del(K_STATE);
+      } catch (e) { showLogin('No se pudo conectar: ' + e.message); return; }
+    }
+    if (!tok || !clientId()) { showLogin(); return; }
+    start();
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
