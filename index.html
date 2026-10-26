@@ -97,7 +97,7 @@ button{font:inherit}
 /* lista */
 #list{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 #list::-webkit-scrollbar{display:none}
-.row{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:4px;min-height:13px;width:100%;align-items:center;padding:0 3px;font-family:'Arimo',sans-serif;font-size:8px;line-height:13px;color:var(--list)}
+.row{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:4px;min-height:15px;width:100%;align-items:center;padding:0 3px;font-family:'Arimo',sans-serif;font-size:8px;line-height:13px;color:var(--list)}
 .row .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row.on{background:color-mix(in srgb,var(--neon) 22%,#2a2e2a);color:var(--n-pale)}
 .row.off{opacity:.4}
@@ -117,9 +117,36 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
 .field{all:unset;box-sizing:border-box;width:100%;height:18px;padding:0 6px;background:#050805;border:1px solid #000;box-shadow:0 0 0 2px #4a524a;font-family:'Arimo',sans-serif;font-size:8px;color:var(--list);-webkit-user-select:text;user-select:text}
 .small{font-family:'Arimo',sans-serif;font-size:7px;line-height:10px;color:#b8c0b8}
 .code{font-family:'Silkscreen',monospace;font-size:6px;color:var(--neon);word-break:break-all;-webkit-user-select:text;user-select:text}
+/* áreas de toque más grandes (se ven igual) */
+.gb:not(.ab),.cbtn:not(.ab){position:relative}
+.gb::after{content:'';position:absolute;inset:-6px;border-radius:50%}
+.gb.mini::after{inset:-3px}
+.cbtn::after{content:'';position:absolute;inset:-5px -1px}
+.gb.dim{filter:saturate(.2) brightness(.5)}
+/* portada pixelada */
+#coverBox{position:absolute;inset:0;isolation:isolate;pointer-events:none;background:#000;opacity:0;transition:opacity .6s steps(4)}
+#coverBox.show{opacity:.38}
+#cover{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;filter:grayscale(1) contrast(1.5) brightness(.9)}
+#coverTint{position:absolute;inset:0;background:var(--neon);mix-blend-mode:multiply}
+/* buscador */
+#search{all:unset;box-sizing:border-box;height:12px;padding:0 4px 0 13px;background:#0b120b url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Ccircle cx='3.2' cy='3.2' r='2.4' fill='none' stroke='%239aa29a'/%3E%3Cpath d='M5 5l2.5 2.5' stroke='%239aa29a' stroke-width='1.2'/%3E%3C/svg%3E") no-repeat 3px center;border-bottom:1px solid #1d2a1d;font-family:'Arimo',sans-serif;font-size:8px;color:var(--list);-webkit-user-select:text;user-select:text}
+#search::placeholder{color:#5f6a5f}
+/* pantalla de arranque */
+#boot{position:fixed;inset:0;z-index:50;background:#000;display:flex;align-items:center;justify-content:center}
+#boot pre{font-family:'Silkscreen',monospace;font-size:10px;line-height:17px;color:var(--neon);text-shadow:0 0 4px var(--n-glow);margin:0;white-space:pre;min-height:140px;min-width:250px}
+#boot.out{opacity:0;transition:opacity .45s steps(5)}
+@keyframes cur{50%{opacity:0}}
+#boot .c{animation:cur .5s steps(1) infinite}
+/* temas */
+.themes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 12px}
+.theme{all:unset;box-sizing:border-box;cursor:pointer;height:28px;border-radius:6px;border:1px solid #000;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:4px 0 3px;font-family:'Arimo',sans-serif;font-weight:700;font-size:7px;color:#fff;text-shadow:0 1px 1px #000}
+.theme i{display:block;width:70%;height:4px;border-radius:2px}
+.theme.on{box-shadow:0 0 0 2px #fff}
+.sub{font-family:'Arimo',sans-serif;font-weight:700;font-size:7px;letter-spacing:1px;color:#8a948a;margin:0 0 6px}
 </style>
 </head>
 <body>
+<div id="boot"><pre id="bootTxt"></pre></div>
 <div id="stage">
 <div id="app">
 
@@ -131,8 +158,8 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     <div class="ab chrome" style="left:74px;top:2px;width:22px;height:12px;border-radius:6px"></div>
     <div class="ab chrome" style="left:204px;top:2px;width:22px;height:12px;border-radius:6px"></div>
     <div class="ab" style="left:114px;top:2px;display:flex;gap:6px">
-      <span class="gb mini" style="width:14px;height:14px" aria-hidden="true">–</span>
-      <span class="gb mini" style="width:14px;height:14px" aria-hidden="true">x</span>
+      <button id="bShuf" class="gb mini dim" style="width:14px;height:14px" aria-label="Aleatorio"><svg width="8" height="7" viewBox="0 0 8 7" aria-hidden="true"><path d="M0 1.5h1.5l3.5 4H7M0 5.5h1.5l1.2-1.4M5 1.5h2M6 .3l1.3 1.2L6 2.7M6 4.3l1.3 1.2L6 6.7" stroke="currentColor" stroke-width="1" fill="none"/></svg></button>
+      <button id="bRep" class="gb mini dim" style="width:14px;height:14px" aria-label="Repetir"><svg width="8" height="7" viewBox="0 0 8 7" aria-hidden="true"><path d="M1 4V1.5h5.5M5.5.3l1.2 1.2-1.2 1.2M7 3v2.5H1.5M2.5 6.7L1.3 5.5l1.2-1.2" stroke="currentColor" stroke-width="1" fill="none"/></svg><span id="rep1" style="position:absolute;right:-3px;top:-4px;font-size:6px;color:var(--neon);text-shadow:0 0 2px #000;display:none">1</span></button>
       <button id="bSet2" class="gb mini" style="width:14px;height:14px;font-size:7px" aria-label="Ajustes">v</button>
     </div>
 
@@ -158,6 +185,7 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     <div class="ab metal" style="left:62px;top:172px;width:176px;height:92px;border-radius:20px 20px 70px 70px"></div>
     <div class="ab chrome" style="left:76px;top:180px;width:148px;height:74px;border-radius:10px 10px 40px 40px"></div>
     <div id="dance" class="ab" style="left:81px;top:185px;width:138px;height:64px;border-radius:7px 7px 36px 36px;background:#010801;overflow:hidden;box-shadow:inset 0 0 12px #000" role="img" aria-label="Robots bailando al ritmo de la música">
+      <div id="coverBox"><canvas id="cover" width="46" height="21"></canvas><div id="coverTint"></div></div>
       <div class="sp" style="position:absolute;left:14px;top:0;width:46px;height:64px;background:linear-gradient(var(--neon),transparent);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);opacity:.08"></div>
       <div class="sp" style="position:absolute;right:14px;top:0;width:46px;height:64px;background:linear-gradient(var(--neon),transparent);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);opacity:.08"></div>
       <span id="danceL" class="px" style="position:absolute;left:8px;top:4px;opacity:.85">ROBO.DANCE</span>
@@ -214,7 +242,7 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     <div class="ab chrome" style="left:0;top:10px;width:14px;height:72px;border-radius:7px 2px 2px 7px"></div>
     <div class="ab chrome" style="left:254px;top:10px;width:14px;height:72px;border-radius:2px 7px 7px 2px"></div>
     <div class="ab metal" style="left:12px;top:0;width:244px;height:92px;border-radius:10px"></div>
-    <span id="led" class="ab gb mini" style="left:230px;top:5px;width:8px;height:8px" aria-hidden="true"></span>
+    <button id="led" class="ab gb mini" style="left:230px;top:5px;width:8px;height:8px" aria-label="Cambiar tema de color"></button>
     <div class="ab" style="left:22px;top:12px;width:224px;height:70px;background:#000;border:1px solid #000;border-radius:4px;box-shadow:0 0 0 2px #5a625a,inset 0 0 8px #000">
       <span class="ab" style="left:6px;top:4px;font-family:'Arimo';font-weight:700;font-size:7px;color:var(--neon)">ON</span>
       <span class="ab" style="left:22px;top:4px;font-family:'Arimo';font-weight:700;font-size:7px;color:var(--neon)">AUTO</span>
@@ -232,12 +260,15 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     <button id="plTitle" class="ab chrome" style="all:unset;position:absolute;box-sizing:border-box;left:74px;top:3px;width:140px;height:18px;border-radius:9px;display:grid;place-items:center;cursor:pointer;background:linear-gradient(#f0f4f0,#8c958c 40%,#2e332e 55%,#a6b0a6 80%,#e4ece4);border:1px solid #000" aria-label="Elegir playlist">
       <div style="width:132px;height:12px;border-radius:6px;background:linear-gradient(var(--n-dark),var(--n-mid) 50%,var(--n-dark));display:grid;place-items:center;font-family:'Arimo',sans-serif;font-weight:700;font-size:8px;color:var(--n-pale);text-shadow:0 0 3px var(--neon);overflow:hidden"><span id="plName" style="max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">ELIGE UNA PLAYLIST</span></div>
     </button>
-    <div id="list" class="ab" style="left:18px;top:26px;width:252px;height:188px;background:#050805;border:1px solid #000;box-shadow:0 0 0 2px #4a524a;padding-top:2px;box-sizing:border-box"></div>
+    <div class="ab" style="left:18px;top:26px;width:252px;height:188px;background:#050805;border:1px solid #000;box-shadow:0 0 0 2px #4a524a;display:flex;flex-direction:column">
+      <label style="display:flex"><span style="position:absolute;width:1px;height:1px;overflow:hidden">Buscar</span><input id="search" type="search" placeholder="Buscar en la playlist" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1"></label>
+      <div id="list" style="flex:1;min-height:0;padding-top:1px"></div>
+    </div>
     <div class="ab" style="left:22px;top:220px;display:flex;gap:2px">
       <button id="cLists" class="cbtn" style="width:38px">Listas</button>
       <button id="cTracks" class="cbtn" style="width:38px">Temas</button>
       <button id="cNow" class="cbtn" style="width:38px">Actual</button>
-      <button id="cSet" class="cbtn" style="width:40px">Ajustes</button>
+      <button id="cSet" class="cbtn" style="width:40px">Colores</button>
     </div>
     <button id="cSpot" class="cbtn ab" style="left:204px;top:220px;width:60px">Abrir Spotify</button>
   </section>
@@ -256,13 +287,17 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
 
   <!-- ====================== AJUSTES ====================== -->
   <div id="settings" class="layer" style="background:rgba(0,0,0,.6)">
-    <div class="panel metal" style="top:90px">
-      <div class="ptitle chrome"><div>AJUSTES</div></div>
+    <div class="panel metal" style="top:40px">
+      <div class="ptitle chrome"><div>COLORES</div></div>
+      <p class="sub">TEMAS · UN TOQUE</p>
+      <div id="themes" class="themes"></div>
+      <p class="sub">A TU GUSTO</p>
       <div class="prow"><span>Neón principal</span><span id="swNeon" style="display:flex;gap:4px"></span><input id="inNeon" type="color" aria-label="Color neón"></div>
       <div class="prow"><span>Texto de la lista</span><span id="swList" style="display:flex;gap:4px"></span><input id="inList" type="color" aria-label="Color texto lista"></div>
       <div class="prow"><span>Fondo</span><span id="swBg" style="display:flex;gap:4px"></span><input id="inBg" type="color" aria-label="Color de fondo"></div>
       <div class="prow"><span>Metal</span><span id="swMetal" style="display:flex;gap:4px"></span></div>
-      <div class="prow"><span>Baile robots</span><input id="inBpm" type="range" min="70" max="170" step="5" aria-label="Velocidad del baile"><span id="bpmTxt" class="code" style="width:54px;text-align:right;white-space:nowrap">120</span></div>
+      <p class="sub" style="margin-top:4px">ROBOTS</p>
+      <div class="prow"><span>Velocidad del baile</span><input id="inBpm" type="range" min="70" max="170" step="5" aria-label="Velocidad del baile"><span id="bpmTxt" class="code" style="width:54px;text-align:right;white-space:nowrap">120</span></div>
       <div style="display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap">
         <button id="sReset" class="cbtn" style="width:70px">Restablecer</button>
         <button id="sLogout" class="cbtn" style="width:70px">Cerrar sesión</button>
@@ -316,6 +351,14 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     azul:    ['#5f7690', '#22344a', '#0a1420', '#9ab4cc'],
     rojo:    ['#8a5f5f', '#3e2222', '#160a0a', '#c89a9a']
   };
+  var TEMAS = [
+    { name: 'Matrix', neon: '#3dff3d', list: '#e8f0e8', bg: '#000000', metal: 'grafito' },
+    { name: 'Hielo', neon: '#38e1ff', list: '#e6f8ff', bg: '#02070d', metal: 'azul' },
+    { name: 'Plasma', neon: '#c86bff', list: '#f1e6ff', bg: '#0a0412', metal: 'morado' },
+    { name: 'Neón rosa', neon: '#ff3c7a', list: '#ffe6ee', bg: '#0d0306', metal: 'rojo' },
+    { name: 'Ámbar', neon: '#ffb21e', list: '#ffeccc', bg: '#0a0700', metal: 'grafito' },
+    { name: 'Cromo', neon: '#dfe8ff', list: '#ffffff', bg: '#000000', metal: 'plata' }
+  ];
   var SW_NEON = ['#3dff3d', '#38e1ff', '#c86bff', '#ff3c7a', '#ffb21e'];
   var SW_LIST = ['#e8f0e8', '#b8ffb8', '#ffffff', '#ffd98a'];
   var SW_BG = ['#000000', '#0a0f1e', '#140a1e', '#1a1a1a'];
@@ -330,7 +373,7 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
 
   var cfg = Object.assign({}, DEF, load(K_CFG, {}));
   var tok = load(K_TOK, null);
-  var S = { me: null, playlists: [], tracks: [], view: 'tracks', player: null, at: 0, deviceId: null };
+  var S = { me: null, playlists: [], tracks: [], view: 'tracks', player: null, at: 0, deviceId: null, q: '', shuffle: false, repeat: 'off' };
 
   /* ================== ESCALA (el diseño mide 300×649 y se agranda al celular) ================== */
   function fit() {
@@ -365,7 +408,29 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     $('inNeon').value = cfg.neon; $('inList').value = cfg.list; $('inBg').value = cfg.bg;
     $('inBpm').value = cfg.bpm; $('bpmTxt').textContent = cfg.bpm + ' BPM';
     updateDanceLabel();
+    var btns = document.querySelectorAll('.theme');
+    for (var i = 0; i < btns.length; i++) {
+      var t = TEMAS[i];
+      btns[i].classList.toggle('on', t.neon === cfg.neon && t.metal === cfg.metal && t.bg === cfg.bg);
+    }
   }
+  function applyTheme(t) {
+    cfg.neon = t.neon; cfg.list = t.list; cfg.bg = t.bg; cfg.metal = t.metal; save(K_CFG, cfg); applyCfg();
+  }
+  TEMAS.forEach(function (t) {
+    var b = document.createElement('button'); b.className = 'theme';
+    var m = METALES[t.metal];
+    b.style.background = 'radial-gradient(ellipse at 50% 20%,' + m[0] + ',' + m[1] + ' 60%,' + m[2] + ')';
+    b.textContent = t.name;
+    var bar = document.createElement('i'); bar.style.background = t.neon; bar.style.boxShadow = '0 0 4px ' + t.neon;
+    b.insertBefore(bar, b.firstChild);
+    b.addEventListener('click', function () { applyTheme(t); });
+    $('themes').appendChild(b);
+  });
+  $('led').addEventListener('click', function () {
+    var i = TEMAS.findIndex(function (t) { return t.neon === cfg.neon && t.metal === cfg.metal; });
+    var t = TEMAS[(i + 1) % TEMAS.length]; applyTheme(t); flash('Tema ' + t.name);
+  });
   function setCfg(k, v) { cfg[k] = v; save(K_CFG, cfg); applyCfg(); }
   function swatches(boxId, list, key) {
     var box = $(boxId);
@@ -528,11 +593,15 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     S.tracks = out;
   }
 
+  function norm(x) { return (x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
   function renderList() {
     var box = $('list'); box.textContent = '';
+    var q = norm(S.q), shown = 0;
+    $('search').placeholder = S.view === 'lists' ? 'Buscar playlist' : 'Buscar en la playlist';
     if (S.view === 'lists') {
       if (!S.playlists.length) { msg('No encontré playlists tuyas. Crea o copia una en Spotify y vuelve a tocar "Listas".'); return; }
       S.playlists.forEach(function (p, i) {
+        if (q && norm(p.name).indexOf(q) < 0) return; shown++;
         var b = document.createElement('button'); b.className = 'row';
         if (p.id === cfg.plId) b.classList.add('on');
         var t = document.createElement('span'); t.className = 't'; t.textContent = (i + 1) + '. ' + p.name;
@@ -541,12 +610,14 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
         b.addEventListener('click', function () { choosePlaylist(p); });
         box.appendChild(b);
       });
+      if (q && !shown) msg('Nada coincide con "' + S.q + '".');
       return;
     }
     if (!cfg.plId) { msg('Toca PL o "Listas" para elegir una de tus playlists.'); return; }
     if (!S.tracks.length) { msg('Esta playlist no tiene canciones (o Spotify no deja leerla).'); return; }
     var nowUri = S.player && S.player.item && S.player.item.uri;
     S.tracks.forEach(function (t, i) {
+      if (q && norm(t.artist + ' ' + t.name).indexOf(q) < 0) return; shown++;
       var b = document.createElement('button'); b.className = 'row';
       if (t.uri === nowUri) b.classList.add('on');
       if (t.local) b.classList.add('off');
@@ -556,18 +627,21 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
       b.addEventListener('click', function () { playIndex(i); });
       box.appendChild(b);
     });
+    if (q && !shown) msg('Nada coincide con "' + S.q + '".');
     function msg(m) { var p = document.createElement('div'); p.className = 'msg'; p.textContent = m; box.appendChild(p); }
   }
   function msgList(m) { var box = $('list'); box.textContent = ''; var p = document.createElement('div'); p.className = 'msg'; p.textContent = m; box.appendChild(p); }
 
+  function clearSearch() { S.q = ''; $('search').value = ''; }
+  $('search').addEventListener('input', function (e) { S.q = e.target.value; renderList(); });
   async function showPlaylists() {
-    S.view = 'lists'; $('plName').textContent = 'TUS PLAYLISTS';
+    clearSearch(); S.view = 'lists'; $('plName').textContent = 'TUS PLAYLISTS';
     msgList('Cargando tus playlists…');
     try { await loadPlaylists(); renderList(); } catch (e) { handleErr(e); }
   }
   async function choosePlaylist(p) {
     cfg.plId = p.id; cfg.plName = p.name; save(K_CFG, cfg);
-    S.view = 'tracks'; $('plName').textContent = p.name.toUpperCase();
+    clearSearch(); S.view = 'tracks'; $('plName').textContent = p.name.toUpperCase();
     msgList('Cargando canciones…');
     try { await loadTracks(p.id); renderList(); } catch (e) { handleErr(e); }
   }
@@ -575,6 +649,7 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     S.view = 'tracks'; $('plName').textContent = cfg.plName ? cfg.plName.toUpperCase() : 'ELIGE UNA PLAYLIST'; renderList();
   }
   function scrollToNow() {
+    if (S.q) { clearSearch(); renderList(); }
     if (S.view !== 'tracks') showTracks();
     var on = $('list').querySelector('.row.on'); if (on) on.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
@@ -619,6 +694,21 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
   $('bNext').addEventListener('click', function () { act(function () { return api('/me/player/next', { method: 'POST' }); }); });
   $('bPrev').addEventListener('click', function () { act(function () { return api('/me/player/previous', { method: 'POST' }); }); });
 
+  $('bShuf').addEventListener('click', function () {
+    var v = !S.shuffle; S.shuffle = v; paintModes(); flash(v ? 'Aleatorio ON' : 'Aleatorio OFF');
+    act(function () { return api('/me/player/shuffle?state=' + v, { method: 'PUT' }); });
+  });
+  $('bRep').addEventListener('click', function () {
+    var next = { off: 'context', context: 'track', track: 'off' }[S.repeat] || 'off';
+    S.repeat = next; paintModes();
+    flash(next === 'off' ? 'Repetir OFF' : next === 'context' ? 'Repetir lista' : 'Repetir canción');
+    act(function () { return api('/me/player/repeat?state=' + next, { method: 'PUT' }); });
+  });
+  function paintModes() {
+    $('bShuf').classList.toggle('dim', !S.shuffle);
+    $('bRep').classList.toggle('dim', S.repeat === 'off');
+    $('rep1').style.display = S.repeat === 'track' ? 'block' : 'none';
+  }
   function ratio(e, el) {
     var r = el.getBoundingClientRect(); var x = (e.clientX - r.left) / r.width;
     return Math.min(1, Math.max(0, x));
@@ -645,12 +735,37 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
       if (!j || !j.item) { S.player = j ? { playing: false, progress: 0, item: null, device: j.device } : null; }
       else {
         S.player = { playing: !!j.is_playing, progress: j.progress_ms || 0, device: j.device,
-          item: { uri: j.item.uri, name: j.item.name, artist: (j.item.artists || []).map(function (a) { return a.name; }).join(', '), duration_ms: j.item.duration_ms } };
+          item: { uri: j.item.uri, name: j.item.name, artist: (j.item.artists || []).map(function (a) { return a.name; }).join(', '), duration_ms: j.item.duration_ms, cover: pickCover(j.item) } };
       }
+      if (j) { S.shuffle = !!j.shuffle_state; S.repeat = j.repeat_state || 'off'; paintModes(); }
       S.at = Date.now();
       paintNow();
     } catch (e) { if (e.status === 401) handleErr(e); }
     finally { pollBusy = false; }
+  }
+  function pickCover(it) {
+    var imgs = (it.album && it.album.images) || (it.images) || [];
+    if (!imgs.length) return '';
+    var best = imgs[imgs.length - 1]; // la más chica basta: igual se pixela
+    for (var i = 0; i < imgs.length; i++) { if ((imgs[i].width || 0) >= 64 && (imgs[i].width || 0) < (best.width || 9999)) best = imgs[i]; }
+    return best.url || '';
+  }
+  var lastCover = null;
+  function paintCover(url) {
+    if (url === lastCover) return; lastCover = url;
+    var cv = $('cover');
+    if (!url) { $('coverBox').classList.remove('show'); return; }
+    var img = new Image();
+    img.onload = function () {
+      if (lastCover !== url) return;
+      var ctx = cv.getContext('2d'), W = cv.width, H = cv.height, s = Math.min(img.width, img.height);
+      var sh = s * H / W; // recorte central para llenar la pantalla
+      ctx.imageSmoothingEnabled = true; ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(img, (img.width - s) / 2, (img.height - sh) / 2, s, sh, 0, 0, W, H);
+      $('coverBox').classList.add('show');
+    };
+    img.onerror = function () { $('coverBox').classList.remove('show'); };
+    img.src = url;
   }
   var lastUri = null;
   function paintNow() {
@@ -662,6 +777,7 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     if ($('ticker').dataset.t !== txt) { $('ticker').dataset.t = txt; $('ticker').textContent = txt + txt; }
     var uri = p && p.item && p.item.uri;
     if (uri !== lastUri) { lastUri = uri; if (S.view === 'tracks') renderList(); }
+    paintCover(p && p.item ? p.item.cover : '');
     updateDanceLabel();
     paintTime();
   }
@@ -715,8 +831,20 @@ input[type=range]{flex:1;min-width:0;width:60px;accent-color:var(--neon)}
     } catch (e) { handleErr(e); }
   }
 
+  function bootScreen() {
+    var L = ['NEBULASOUND v1.0', '', 'cargando skin ORBE.MATRIX .... OK', 'calibrando tubos neón ....... OK', 'despertando robots .......... OK', 'conectando con Spotify ...... OK', '', '>> listo'];
+    var pre = $('bootTxt'), i = 0, txt = '';
+    var cur = document.createElement('span'); cur.className = 'c'; cur.textContent = '_';
+    var iv = setInterval(function () {
+      txt += L[i] + '\n'; pre.textContent = txt; pre.appendChild(cur); i++;
+      if (i >= L.length) {
+        clearInterval(iv);
+        setTimeout(function () { $('boot').classList.add('out'); setTimeout(function () { $('boot').style.display = 'none'; }, 500); }, 350);
+      }
+    }, 190);
+  }
   async function boot() {
-    applyCfg(); fit(); renderList(); paintNow();
+    applyCfg(); fit(); renderList(); paintNow(); bootScreen();
     var q = new URLSearchParams(location.search);
     if (q.get('error')) {
       history.replaceState(null, '', location.pathname);
